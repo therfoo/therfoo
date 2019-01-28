@@ -1,2 +1,2 @@
-# therfoo
-A deep learning framework implemented in Golang.
+# Therfoo
+A deep learning library implemented in Golang.

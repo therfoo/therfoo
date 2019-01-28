@@ -129,7 +129,7 @@ func (g TestGenerator) Len() int {
 func TestFit(t *testing.T) {
 	lr := 0.005
 	m := New(
-		WithEpochs(400),
+		WithEpochs(1000),
 		WithInputShape([]int{2}),
 		WithOptimizer(
 			sgd.New(

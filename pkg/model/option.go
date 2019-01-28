@@ -50,10 +50,3 @@ func WithCrossEntropyLoss() Option {
 		m.skipOutputDerivative = true
 	}
 }
-
-func WithQuadraticLoss() Option {
-	return func(m *Model) {
-		m.lossFunction = losses.Quadratic
-		m.lossPrime = losses.QuadraticPrime
-	}
-}

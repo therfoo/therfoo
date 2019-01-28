@@ -5,13 +5,14 @@ import (
 )
 
 func ReLU(z *tensor.Vector) *tensor.Vector {
-	a := tensor.Vector{}
+	n := z.Len()
+	a := make(tensor.Vector, n, n)
 
 	z.Each(func(index int, value float64) {
 		if value >= 0. {
-			a.Append(value)
+			a[index] = value
 		} else {
-			a.Append(0.)
+			a[index] = 0.
 		}
 	})
 
@@ -19,13 +20,14 @@ func ReLU(z *tensor.Vector) *tensor.Vector {
 }
 
 func ReLUPrime(a *tensor.Vector) *tensor.Vector {
-	d := tensor.Vector{}
+	n := a.Len()
+	d := make(tensor.Vector, n, n)
 
 	a.Each(func(index int, value float64) {
-		if value > 0 {
-			d.Append(1)
+		if value > 0. {
+			d[index] = 1.
 		} else {
-			d.Append(0)
+			d[index] = 0.
 		}
 	})
 

@@ -13,23 +13,9 @@ func WithReLU() Option {
 	}
 }
 
-func WithLeakyReLU() Option {
-	return func(d *Dense) {
-		d.activate = activations.LeakyReLU
-		d.derive = activations.LeakyReLUPrime
-	}
-}
-
 func WithSigmoid() Option {
 	return func(d *Dense) {
 		d.activate = activations.Sigmoid
 		d.derive = activations.SigmoidPrime
-	}
-}
-
-func WithSoftmax() Option {
-	return func(d *Dense) {
-		d.activate = activations.Softmax
-		d.derive = activations.SoftmaxPrime
 	}
 }

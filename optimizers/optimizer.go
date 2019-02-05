@@ -1,7 +1,7 @@
 package optimizers
 
 import (
-	"github.com/therfoo/therfoo/pkg/tensor"
+	"github.com/therfoo/therfoo/tensor"
 )
 
 type Optimizer interface {

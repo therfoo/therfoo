@@ -1,7 +1,7 @@
 package dense
 
 import (
-	"github.com/therfoo/therfoo/pkg/activations"
+	"github.com/therfoo/therfoo/activations"
 )
 
 type Option func(*Dense)

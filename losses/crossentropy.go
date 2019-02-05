@@ -1,7 +1,7 @@
 package losses
 
 import (
-	"github.com/therfoo/therfoo/pkg/tensor"
+	"github.com/therfoo/therfoo/tensor"
 	"math"
 )
 

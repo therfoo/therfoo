@@ -1,7 +1,7 @@
 package sgd
 
 import (
-	"github.com/therfoo/therfoo/pkg/tensor"
+	"github.com/therfoo/therfoo/tensor"
 )
 
 type Operation func(*SGD)

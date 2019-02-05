@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/therfoo/therfoo/pkg/losses"
-	"github.com/therfoo/therfoo/pkg/optimizers"
+	"github.com/therfoo/therfoo/losses"
+	"github.com/therfoo/therfoo/optimizers"
 )
 
 type Option func(*Model)

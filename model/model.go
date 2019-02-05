@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/therfoo/therfoo/pkg/optimizers"
-	"github.com/therfoo/therfoo/pkg/tensor"
+	"github.com/therfoo/therfoo/optimizers"
+	"github.com/therfoo/therfoo/tensor"
 	"math"
 	"sync"
 )

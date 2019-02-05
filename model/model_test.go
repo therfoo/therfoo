@@ -2,9 +2,9 @@ package model
 
 import (
 	"fmt"
-	"github.com/therfoo/therfoo/pkg/layers/dense"
-	"github.com/therfoo/therfoo/pkg/optimizers/sgd"
-	"github.com/therfoo/therfoo/pkg/tensor"
+	"github.com/therfoo/therfoo/layers/dense"
+	"github.com/therfoo/therfoo/optimizers/sgd"
+	"github.com/therfoo/therfoo/tensor"
 	"math"
 	"testing"
 )

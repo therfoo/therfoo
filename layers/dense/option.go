@@ -19,3 +19,10 @@ func WithSigmoid() Option {
 		d.derive = activations.SigmoidPrime
 	}
 }
+
+func WithSoftmax() Option {
+	return func(d *Dense) {
+		d.activate = activations.Softmax
+		d.derive = activations.SoftmaxPrime
+	}
+}

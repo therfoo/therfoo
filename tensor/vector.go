@@ -12,6 +12,10 @@ func (v *Vector) Each(f func(index int, value float64)) {
 	}
 }
 
+func (v *Vector) Get(index int) float64 {
+	return (*v)[index]
+}
+
 func (v *Vector) Len() int {
 	return len(*v)
 }

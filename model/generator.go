@@ -5,6 +5,6 @@ import (
 )
 
 type Generator interface {
-	Next(index int) (x, y *[]tensor.Vector)
+	Get(index int) (x, y *[]tensor.Vector)
 	Len() int
 }

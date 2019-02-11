@@ -4,7 +4,9 @@ import (
 	"github.com/therfoo/therfoo/optimizers"
 	"github.com/therfoo/therfoo/tensor"
 	"math"
+	"math/rand"
 	"sync"
+	"time"
 )
 
 type Model struct {
@@ -74,7 +76,6 @@ func (m *Model) Compile() error {
 func (m *Model) minimize(yTrue *tensor.Vector, activations *[]tensor.Vector) {
 
 	yEstimate := (*activations)[m.layersCount]
-
 	nablaLoss := m.lossPrime(yTrue, &yEstimate)
 
 	if !m.skipOutputDerivative {
@@ -91,9 +92,10 @@ func (m *Model) minimize(yTrue *tensor.Vector, activations *[]tensor.Vector) {
 }
 
 func (m *Model) evaluate(generator Generator, c chan *Metrics) {
-	steps := randomWalk(generator.Len())
+	rand.Seed(time.Now().Unix())
+	steps := rand.Perm(generator.Len())
 	for _, step := range steps {
-		xBatch, yBatch := generator.Next(step)
+		xBatch, yBatch := generator.Get(step)
 		c <- m.evaluateBatch(xBatch, yBatch)
 	}
 	close(c)
@@ -162,10 +164,11 @@ func (m *Model) train(xBatch, yBatch *[]tensor.Vector) {
 }
 
 func (m *Model) Fit(metrics chan *TrainingMetrics) {
+	n := m.generator.training.Len()
 	for e := 0; e < m.epochs; e++ {
-		steps := randomWalk(m.generator.training.Len())
-		for batch, step := range steps {
-			xBatch, yBatch := m.generator.training.Next(step)
+		rand.Seed(time.Now().Unix())
+		for batch, step := range rand.Perm(n) {
+			xBatch, yBatch := m.generator.training.Get(step)
 			m.train(xBatch, yBatch)
 			metrics <- &TrainingMetrics{
 				Metrics: *m.evaluateBatch(xBatch, yBatch),

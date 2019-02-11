@@ -25,15 +25,15 @@ func TestFit(t *testing.T) {
 	)
 
 	m.Add(28, dense.New(dense.WithReLU()))
-	m.Add(10, dense.New(dense.WithSigmoid()))
+	m.Add(10, dense.New(dense.WithSoftmax()))
 
 	m.Compile()
 
 	trainingMetrics := make(chan *TrainingMetrics, 10)
 
 	go func() {
-		for metric := range trainingMetrics {
-			t.Log(metric.Metrics.Cost)
+		for _ = range trainingMetrics {
+			//	fmt.Printf("\x0cOn Cost %f", metric.Metrics.Cost)
 		}
 	}()
 

@@ -1,7 +1,8 @@
-package therfoo_example
+package therfoo_test
 
 import (
-	"github.com/therfoo/therfoo/data/basic"
+	"github.com/therfoo/datasets/basic"
+
 	"github.com/therfoo/therfoo/layers/dense"
 	"github.com/therfoo/therfoo/model"
 	"github.com/therfoo/therfoo/optimizers/sgd"

@@ -10,7 +10,8 @@ An easy to use machine learning Golang module.
 package main
 
 import (
-	"github.com/therfoo/therfoo/data/basic"
+	"github.com/therfoo/datasets/basic"
+
 	"github.com/therfoo/therfoo/layers/dense"
 	"github.com/therfoo/therfoo/model"
 	"github.com/therfoo/therfoo/optimizers/sgd"

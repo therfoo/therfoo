@@ -2,7 +2,9 @@ package model
 
 import (
 	"github.com/therfoo/therfoo/losses"
+	"github.com/therfoo/therfoo/metrics"
 	"github.com/therfoo/therfoo/optimizers"
+	"github.com/therfoo/therfoo/tensor"
 )
 
 type Option func(*Model)
@@ -25,7 +27,7 @@ func WithValidatingGenerator(g Generator) Option {
 	}
 }
 
-func WithInputShape(shape []int) Option {
+func WithInputShape(shape tensor.Shape) Option {
 	return func(m *Model) {
 		m.inputShape = shape
 	}
@@ -43,10 +45,30 @@ func WithOptimizer(o optimizers.Optimizer) Option {
 	}
 }
 
+func WithBinaryAccuracy() Option {
+	return func(m *Model) {
+		m.accurate = metrics.BinaryAccuracy
+	}
+}
+
+func WithCategoricalAccuracy() Option {
+	return func(m *Model) {
+		m.accurate = metrics.CategoricalAccuracy
+	}
+}
+
 func WithCrossEntropyLoss() Option {
 	return func(m *Model) {
 		m.lossFunction = losses.CrossEntropy
 		m.lossPrime = losses.CrossEntropyPrime
 		m.skipOutputDerivative = true
+	}
+}
+
+func WithVerbosity(verbose bool) Option {
+	return func(m *Model) {
+		if verbose {
+			m.metricsConsumers = append(m.metricsConsumers, metrics.Logger)
+		}
 	}
 }

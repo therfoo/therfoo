@@ -26,7 +26,6 @@ type Model struct {
 	neuronsCount         []int
 	optimizer            optimizers.Optimizer
 	epochs               int
-	epochStream          chan int
 	skipOutputDerivative bool
 }
 
@@ -70,8 +69,6 @@ func (m *Model) Compile() error {
 
 func (m *Model) Fit() {
 
-	go m.validate()
-
 	for epoch := 0; epoch < m.epochs; epoch++ {
 		rand.Seed(time.Now().Unix())
 		for _, batch := range rand.Perm(m.generator.training.Len()) {
@@ -97,7 +94,7 @@ func (m *Model) Fit() {
 
 		}
 
-		m.epochStream <- epoch
+		m.validate(epoch)
 
 	}
 }
@@ -134,34 +131,32 @@ func (m *Model) Predict(xBatch *[]tensor.Vector) *[]tensor.Vector {
 	return &predictions
 }
 
-func (m *Model) validate() {
-	for epoch := range m.epochStream {
-		rand.Seed(time.Now().Unix())
-		n := m.generator.validating.Len()
-		mm := metrics.Metrics{Epoch: epoch}
-		accurate, total := 0., 0.
-		for _, batch := range rand.Perm(n) {
-			xBatch, yBatch := m.generator.training.Get(batch)
-			yBatchEstimate := m.Predict(xBatch)
-			cost := 0.
-			for i := range *yBatch {
-				cost += m.lossFunction(&(*yBatch)[i], &(*yBatchEstimate)[i]).Sum()
-				total++
-				if m.accurate(&(*yBatch)[i], &(*yBatchEstimate)[i]) {
-					accurate++
-				}
+func (m *Model) validate(epoch int) {
+	rand.Seed(time.Now().Unix())
+	n := m.generator.validating.Len()
+	mm := metrics.Metrics{Epoch: epoch}
+	accurate, total := 0., 0.
+	for _, batch := range rand.Perm(n) {
+		xBatch, yBatch := m.generator.training.Get(batch)
+		yBatchEstimate := m.Predict(xBatch)
+		cost := 0.
+		for i := range *yBatch {
+			cost += m.lossFunction(&(*yBatch)[i], &(*yBatchEstimate)[i]).Sum()
+			total++
+			if m.accurate(&(*yBatch)[i], &(*yBatchEstimate)[i]) {
+				accurate++
 			}
-			mm.Cost += cost / float64(len(*yBatch))
 		}
-		mm.Accuracy, mm.Cost = accurate/total, mm.Cost/float64(n)
-		for _, consume := range m.metricsConsumers {
-			consume(&mm)
-		}
+		mm.Cost += cost / float64(len(*yBatch))
+	}
+	mm.Accuracy, mm.Cost = accurate/total, mm.Cost/float64(n)
+	for _, consume := range m.metricsConsumers {
+		consume(&mm)
 	}
 }
 
 func New(options ...Option) *Model {
-	m := Model{epochStream: make(chan int)}
+	m := Model{}
 	for i := range options {
 		options[i](&m)
 	}

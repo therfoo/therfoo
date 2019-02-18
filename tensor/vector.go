@@ -19,3 +19,20 @@ func (v *Vector) Get(index int) float64 {
 func (v *Vector) Len() int {
 	return len(*v)
 }
+
+func (v *Vector) Max() (index int, value float64) {
+	index, max := 0, (*v)[0]
+	for i := range *v {
+		if max < (*v)[i] {
+			index, max = i, (*v)[i]
+		}
+	}
+	return index, max
+}
+
+func (v *Vector) Sum() (sum float64) {
+	for i := range *v {
+		sum += (*v)[i]
+	}
+	return sum
+}

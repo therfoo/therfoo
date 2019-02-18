@@ -13,8 +13,8 @@ type Dense struct {
 	weights      [][]float64
 }
 
-func (d *Dense) Activate(x *tensor.Vector) tensor.Vector {
-	z := tensor.Vector{}
+func (d *Dense) Activate(x *tensor.Vector) *tensor.Vector {
+	z := make(tensor.Vector, d.neuronsCount, d.neuronsCount)
 	for neuron := range d.weights {
 		sum := 0.
 		for weight := range d.weights[neuron] {
@@ -24,10 +24,10 @@ func (d *Dense) Activate(x *tensor.Vector) tensor.Vector {
 				sum += d.weights[neuron][weight] * (*x)[weight-1]
 			}
 		}
-		z.Append(sum)
+		z[neuron] = sum
 	}
 
-	return *d.activate(&z)
+	return d.activate(&z)
 }
 
 func (d *Dense) Derive(activation, cost *tensor.Vector) {

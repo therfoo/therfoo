@@ -1,29 +1,32 @@
 package model
 
 import (
+	"github.com/therfoo/therfoo/metrics"
 	"github.com/therfoo/therfoo/optimizers"
 	"github.com/therfoo/therfoo/tensor"
-	"math"
 	"math/rand"
 	"sync"
 	"time"
 )
 
 type Model struct {
+	accurate     func(yTrue, yEstimate *tensor.Vector) bool
 	lossFunction func(yTrue, yEstimate *tensor.Vector) *tensor.Vector
 	lossPrime    func(yTrue, yEstimate *tensor.Vector) *tensor.Vector
-	epochs       int
 	generator    struct {
 		testing    Generator
 		training   Generator
 		validating Generator
 	}
-	inputShape           []int
+	inputShape           tensor.Shape
 	layers               []Layer
 	layersCount          int
 	learningRate         float64
+	metricsConsumers     []metrics.Consumer
 	neuronsCount         []int
 	optimizer            optimizers.Optimizer
+	epochs               int
+	epochStream          chan int
 	skipOutputDerivative bool
 }
 
@@ -34,7 +37,7 @@ func (m *Model) activate(activation *tensor.Vector) *[]tensor.Vector {
 	activations[0] = *activation
 
 	for l := 0; l < m.layersCount; l++ {
-		activations[l+1] = m.layers[l].Activate(&(activations[l]))
+		activations[l+1] = *m.layers[l].Activate(&(activations[l]))
 	}
 
 	return &activations
@@ -46,21 +49,13 @@ func (m *Model) Add(neuronsCount int, layer Layer) {
 	m.layersCount++
 }
 
-func (m *Model) inputSize() int {
-	params := 1
-	for _, c := range m.inputShape {
-		params = params * c
-	}
-	return params
-}
-
 func (m *Model) Compile() error {
 	neurons := make([][]int, m.layersCount, m.layersCount)
 
 	for l := range m.layers {
 		var weightsCount int
 		if l == 0 {
-			weightsCount = m.inputSize()
+			weightsCount = m.inputShape.Size()
 		} else {
 			weightsCount = m.neuronsCount[l-1]
 		}
@@ -71,6 +66,40 @@ func (m *Model) Compile() error {
 	m.optimizer.Init(&neurons)
 
 	return nil
+}
+
+func (m *Model) Fit() {
+
+	go m.validate()
+
+	for epoch := 0; epoch < m.epochs; epoch++ {
+		rand.Seed(time.Now().Unix())
+		for _, batch := range rand.Perm(m.generator.training.Len()) {
+			xBatch, yBatch := m.generator.training.Get(batch)
+
+			wg := sync.WaitGroup{}
+
+			batchSize := len(*xBatch)
+
+			wg.Add(batchSize)
+
+			for i := range *xBatch {
+				go func(s int) {
+					x := (*xBatch)[s]
+					m.minimize(&((*yBatch)[s]), m.activate(&x))
+					wg.Done()
+				}(i)
+			}
+
+			wg.Wait()
+
+			m.optimize(m.optimizer.Optimizations())
+
+		}
+
+		m.epochStream <- epoch
+
+	}
 }
 
 func (m *Model) minimize(yTrue *tensor.Vector, activations *[]tensor.Vector) {
@@ -91,37 +120,6 @@ func (m *Model) minimize(yTrue *tensor.Vector, activations *[]tensor.Vector) {
 	}
 }
 
-func (m *Model) evaluate(generator Generator, c chan *Metrics) {
-	rand.Seed(time.Now().Unix())
-	steps := rand.Perm(generator.Len())
-	for _, step := range steps {
-		xBatch, yBatch := generator.Get(step)
-		c <- m.evaluateBatch(xBatch, yBatch)
-	}
-	close(c)
-}
-
-func (m *Model) evaluateBatch(xBatch, yBatch *[]tensor.Vector) *Metrics {
-	metrics := Metrics{}
-	yBatchEstimate := m.Predict(xBatch)
-	// TODO:
-	accurate, total := 0., 0.
-	for i := range *yBatchEstimate {
-		yTrue := (*yBatch)[i]
-		yEstimate := (*yBatchEstimate)[i]
-		// TODO:
-		yTrue.Each(func(index int, value float64) {
-			if value == math.Round(yEstimate[index]) {
-				accurate++
-			}
-		})
-		total++
-	}
-	metrics.Accuracy = (accurate / total) * 100.
-	metrics.Cost = metrics.Cost / float64(len(*xBatch))
-	return &metrics
-}
-
 func (m *Model) optimize(optimizations *[][][]float64) {
 	for layer := range *optimizations {
 		m.layers[layer].Adjust(&((*optimizations)[layer]))
@@ -129,63 +127,41 @@ func (m *Model) optimize(optimizations *[][][]float64) {
 }
 
 func (m *Model) Predict(xBatch *[]tensor.Vector) *[]tensor.Vector {
-	var predictions []tensor.Vector
+	predictions := make([]tensor.Vector, len(*xBatch), len(*xBatch))
 	for i := range *xBatch {
-		activations := m.activate(&(*xBatch)[i])
-		predictions = append(predictions, (*activations)[m.layersCount-1])
+		predictions[i] = (*m.activate(&(*xBatch)[i]))[m.layersCount]
 	}
 	return &predictions
 }
 
-func (m *Model) Test(c chan *Metrics) {
-	m.evaluate(m.generator.testing, c)
-}
-
-func (m *Model) train(xBatch, yBatch *[]tensor.Vector) {
-
-	wg := sync.WaitGroup{}
-
-	batchSize := len(*xBatch)
-
-	wg.Add(batchSize)
-
-	for i := range *xBatch {
-		go func(s int) {
-			x := (*xBatch)[s]
-			m.minimize(&((*yBatch)[s]), m.activate(&x))
-			wg.Done()
-		}(i)
-	}
-
-	wg.Wait()
-
-	m.optimize(m.optimizer.Optimizations())
-
-}
-
-func (m *Model) Fit(metrics chan *TrainingMetrics) {
-	n := m.generator.training.Len()
-	for e := 0; e < m.epochs; e++ {
+func (m *Model) validate() {
+	for epoch := range m.epochStream {
 		rand.Seed(time.Now().Unix())
-		for batch, step := range rand.Perm(n) {
-			xBatch, yBatch := m.generator.training.Get(step)
-			m.train(xBatch, yBatch)
-			metrics <- &TrainingMetrics{
-				Metrics: *m.evaluateBatch(xBatch, yBatch),
-				Epoch:   e,
-				Batch:   batch,
+		n := m.generator.validating.Len()
+		mm := metrics.Metrics{Epoch: epoch}
+		accurate, total := 0., 0.
+		for _, batch := range rand.Perm(n) {
+			xBatch, yBatch := m.generator.training.Get(batch)
+			yBatchEstimate := m.Predict(xBatch)
+			cost := 0.
+			for i := range *yBatch {
+				cost += m.lossFunction(&(*yBatch)[i], &(*yBatchEstimate)[i]).Sum()
+				total++
+				if m.accurate(&(*yBatch)[i], &(*yBatchEstimate)[i]) {
+					accurate++
+				}
 			}
+			mm.Cost += cost / float64(len(*yBatch))
+		}
+		mm.Accuracy, mm.Cost = accurate/total, mm.Cost/float64(n)
+		for _, consume := range m.metricsConsumers {
+			consume(&mm)
 		}
 	}
-	close(metrics)
-}
-
-func (m *Model) Validate(c chan *Metrics) {
-	m.evaluate(m.generator.validating, c)
 }
 
 func New(options ...Option) *Model {
-	m := Model{}
+	m := Model{epochStream: make(chan int)}
 	for i := range options {
 		options[i](&m)
 	}

@@ -1,4 +1,4 @@
-package therfoo_test
+package therfoo
 
 import (
 	"github.com/therfoo/datasets/basic"
@@ -7,9 +7,10 @@ import (
 	"github.com/therfoo/therfoo/model"
 	"github.com/therfoo/therfoo/optimizers/sgd"
 	"github.com/therfoo/therfoo/tensor"
+	"testing"
 )
 
-func ExampleFit() {
+func TestModelFit(t *testing.T) {
 	m := model.New(
 		model.WithBinaryAccuracy(),
 		model.WithCrossEntropyLoss(),

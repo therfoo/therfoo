@@ -24,8 +24,6 @@ func Softmax(z *tensor.Vector) *tensor.Vector {
 	a.Each(func(index int, value float64) {
 		a[index] = a[index] / sum
 	})
-	print(a[0])
-	print("\n")
 	return &a
 }
 

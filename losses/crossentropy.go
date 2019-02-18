@@ -10,6 +10,9 @@ func CrossEntropy(yTrue, yEstimate *tensor.Vector) *tensor.Vector {
 	l := make(tensor.Vector, n, n)
 	for i := 0; i < n; i++ {
 		l[i] = -(*yTrue)[i]*math.Log((*yEstimate)[i]) - (1-(*yTrue)[i])*math.Log(1-(*yEstimate)[i])
+		if math.IsNaN(l[i]) {
+			l[i] = 0.
+		}
 	}
 	return &l
 }

@@ -41,3 +41,8 @@ func main() {
 
 }
 ```
+
+## Contribution
+
+Contributions are more than welcome, fork, create a PR, get one +1, rebase and
+merge.

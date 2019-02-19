@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestModelFit(t *testing.T) {
+func NewTestModel() *model.Model {
 	m := model.New(
 		model.WithBinaryAccuracy(),
 		model.WithCrossEntropyLoss(),
@@ -26,9 +26,23 @@ func TestModelFit(t *testing.T) {
 
 	m.Add(4, dense.New(dense.WithReLU()))
 	m.Add(1, dense.New(dense.WithSigmoid()))
-
 	m.Compile()
+	return m
+}
 
+func TestModelFit(t *testing.T) {
+	m := NewTestModel()
 	m.Fit()
+}
 
+func TestModelSave(t *testing.T) {
+	m := NewTestModel()
+	m.Fit()
+	m.Save("/tmp/basic.therfoo")
+}
+
+func TestModelLoad(t *testing.T) {
+	m := NewTestModel()
+	m.Load("/tmp/basic.therfoo")
+	m.Fit()
 }

@@ -2,7 +2,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/therfoo/therfoo)](https://goreportcard.com/report/github.com/therfoo/therfoo)
 
 # Therfoo
-An easy to use machine learning Golang module.
+An easy to use machine learning library written in pure Golang. The API is
+inspired by Keras, however, the library is written from scratch and does not
+rely on a different library for computations.
 
 ## Example
 
@@ -44,5 +46,5 @@ func main() {
 
 ## Contribution
 
-Contributions are more than welcome, fork, create a PR, get one +1, rebase and
+Contributions are more than welcome, fork, create a PR, get a +1, rebase and
 merge.

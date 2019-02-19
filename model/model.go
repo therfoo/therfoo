@@ -1,10 +1,14 @@
 package model
 
 import (
+	"bytes"
+	"encoding/gob"
 	"github.com/therfoo/therfoo/metrics"
 	"github.com/therfoo/therfoo/optimizers"
 	"github.com/therfoo/therfoo/tensor"
+	"io/ioutil"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 )
@@ -99,6 +103,19 @@ func (m *Model) Fit() {
 	}
 }
 
+func (m *Model) Load(filename string) (err error) {
+	f, err := os.Open(filename)
+	var weights [][]byte
+	gob.NewDecoder(f).Decode(&weights)
+	for l := range m.layers {
+		err = m.layers[l].Load(weights[l])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (m *Model) minimize(yTrue *tensor.Vector, activations *[]tensor.Vector) {
 
 	yEstimate := (*activations)[m.layersCount]
@@ -129,6 +146,22 @@ func (m *Model) Predict(xBatch *[]tensor.Vector) *[]tensor.Vector {
 		predictions[i] = (*m.activate(&(*xBatch)[i]))[m.layersCount]
 	}
 	return &predictions
+}
+
+func (m *Model) Save(filename string) (err error) {
+	weights := make([][]byte, m.layersCount, m.layersCount)
+	for l := range m.layers {
+		weights[l], err = m.layers[l].Bytes()
+		if err != nil {
+			return err
+		}
+	}
+	var b bytes.Buffer
+	err = gob.NewEncoder(&b).Encode(weights)
+	if err == nil {
+		ioutil.WriteFile(filename, b.Bytes(), 0755)
+	}
+	return err
 }
 
 func (m *Model) validate(epoch int) {

@@ -1,6 +1,8 @@
 package dense
 
 import (
+	"bytes"
+	"encoding/gob"
 	"github.com/therfoo/therfoo/tensor"
 	"math/rand"
 )
@@ -30,18 +32,27 @@ func (d *Dense) Activate(x *tensor.Vector) *tensor.Vector {
 	return d.activate(&z)
 }
 
-func (d *Dense) Derive(activation, cost *tensor.Vector) {
-	d.derive(activation).Each(func(index int, value float64) {
-		(*cost)[index] = (*cost)[index] * value
-	})
-}
-
 func (d *Dense) Adjust(delta *[][]float64) {
 	for n := range *delta {
 		for p := range (*delta)[n] {
 			d.weights[n][p] -= (*delta)[n][p]
 		}
 	}
+}
+
+func (d *Dense) Bytes() (weights []byte, err error) {
+	var b bytes.Buffer
+	err = gob.NewEncoder(&b).Encode(d.weights)
+	if err == nil {
+		weights = b.Bytes()
+	}
+	return
+}
+
+func (d *Dense) Derive(activation, cost *tensor.Vector) {
+	d.derive(activation).Each(func(index int, value float64) {
+		(*cost)[index] = (*cost)[index] * value
+	})
 }
 
 func (d *Dense) Init(neuronsCount, weightsCount int) {
@@ -55,6 +66,10 @@ func (d *Dense) Init(neuronsCount, weightsCount int) {
 			d.weights[n][w] = rand.Float64()
 		}
 	}
+}
+
+func (d *Dense) Load(b []byte) error {
+	return gob.NewDecoder(bytes.NewBuffer(b)).Decode(&d.weights)
 }
 
 func (d *Dense) NextCost(cost *tensor.Vector) *tensor.Vector {

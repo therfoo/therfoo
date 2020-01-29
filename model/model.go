@@ -105,6 +105,10 @@ func (m *Model) Fit() {
 
 func (m *Model) Load(filename string) (err error) {
 	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	
 	var weights [][]byte
 	gob.NewDecoder(f).Decode(&weights)
 	for l := range m.layers {

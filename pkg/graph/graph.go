@@ -59,7 +59,7 @@ func (g Graph) Fit(c Config, w ...MetricsWriter) {
 func (g Graph) Gradients() [][][]float64 {
 	gradients := make([][][]float64, len(g))
 	for i := range gradients {
-		if l, ok := g[i].(Learner); ok {
+		if l, ok := g[i].(Minimizeable); ok {
 			gradients[i] = l.Gradients()
 		}
 	}
@@ -128,7 +128,7 @@ func (g Graph) NumericGradients(x, y []float64) [][][]float64 {
 func (g Graph) Weights() [][][]float64 {
 	weights := make([][][]float64, len(g))
 	for i := range g {
-		if learner, ok := g[i].(Learner); ok {
+		if learner, ok := g[i].(Minimizeable); ok {
 			weights[i] = learner.Weights()
 		}
 	}

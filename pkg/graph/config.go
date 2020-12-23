@@ -9,6 +9,7 @@ type Config struct {
 	Epochs              uint64
 	LearningRate        LearningRate
 	Optimizer           Optimizer
+	Regularizer         Regularizer
 	Training            Data
 	Validation          Data
 	ValidationSplit     float64

@@ -7,6 +7,7 @@ type Minimizer struct {
 	gradients    [][]float64
 	learningRate LearningRate
 	optimizer    Optimizer
+	regularizer  Regularizer
 	weights      [][]float64
 }
 
@@ -16,11 +17,24 @@ func (m *Minimizer) Minimize(gradients []float64) []float64 {
 		copy(m.batch[m.cursor][i], m.gradients[i])
 	}
 	m.cursor++
-	batchSize := len(m.batch)
-	if m.cursor < batchSize {
+	if m.cursor < len(m.batch) {
 		return gradients
 	}
 	m.cursor = 0
+	m.average()
+	m.regularize()
+	m.optimize()
+	lr := m.learningRate.Rate()
+	for i := range m.batch[0] {
+		for j := range m.batch[0][i] {
+			m.weights[i][j] -= lr * m.batch[0][i][j]
+		}
+	}
+	return gradients
+}
+
+func (m *Minimizer) average() {
+	batchSize := len(m.batch)
 	n := float64(batchSize)
 	for i := range m.batch[0] {
 		for j := range m.batch[0][i] {
@@ -34,17 +48,20 @@ func (m *Minimizer) Minimize(gradients []float64) []float64 {
 			}
 		}
 	}
-	if m.optimizer != nil {
-		g := m.optimizer.Optimize(m.batch[0])
-		for i := range g {
-			copy(m.batch[0][i], g[i])
-		}
+}
+
+func (m *Minimizer) optimize() {
+	if m.optimizer == nil {
+		return
 	}
-	lr := m.learningRate.Rate()
-	for i := range m.batch[0] {
-		for j := range m.batch[0][i] {
-			m.weights[i][j] -= lr * m.batch[0][i][j]
-		}
+	g := m.optimizer.Optimize(m.batch[0])
+	for i := range g {
+		copy(m.batch[0][i], g[i])
 	}
-	return gradients
+}
+
+func (m *Minimizer) regularize() {
+	if m.regularizer != nil {
+		m.regularizer.Regularize(m.batch[0])
+	}
 }

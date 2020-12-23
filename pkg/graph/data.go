@@ -26,7 +26,7 @@ func (d Data) ClassWeights() []float64 {
 }
 
 func (d Data) Shuffle() {
-	r := rand.New(rand.NewSource(Seed))
+	r := rand.New(rand.NewSource(DefaultSeed))
 	r.Shuffle(len(d.X), func(i, j int) {
 		d.X[i], d.X[j] = d.X[j], d.X[i]
 		d.Y[i], d.Y[j] = d.Y[j], d.Y[i]

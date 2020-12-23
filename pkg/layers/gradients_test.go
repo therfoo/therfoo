@@ -14,12 +14,9 @@ func TestGradient(t *testing.T) {
 	var linearGraph = func() graph.Graph {
 		return graph.New(
 			&Input{2},
-			&Dense{Neurons: 2},
-			&Bias{},
-			&Bias{},
+			&BiasedDense{Neurons: 2},
 			&Sigmoid{},
-			&Dense{Neurons: 1},
-			&Bias{},
+			&BiasedDense{Neurons: 1},
 			&Sigmoid{},
 		)
 	}
@@ -27,8 +24,7 @@ func TestGradient(t *testing.T) {
 	var polynomialGraph = func() graph.Graph {
 		return graph.New(
 			&Input{2},
-			&Dense{Neurons: 1},
-			&Bias{},
+			&BiasedDense{Neurons: 1},
 			&Polynomial{Degree: 2},
 			&Sigmoid{},
 		)
@@ -69,8 +65,7 @@ func TestGradient(t *testing.T) {
 				DisableShuffle:      true,
 				Epochs:              v.Epochs,
 				Data:                v.Data,
-			}
-			config = config.Validate()
+			}.Validate()
 			v.Graph.Apply(config)
 			v.Graph.Fit(config, writer)
 

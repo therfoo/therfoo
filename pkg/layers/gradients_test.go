@@ -41,6 +41,10 @@ func TestGradient(t *testing.T) {
 		return s
 	}
 
+	var writer graph.MetricsWriterFunc = func(metrics graph.Metrics) {
+		t.Log(metrics.String())
+	}
+
 	for k, v := range []struct {
 		Epochs uint64
 		Data   graph.Data
@@ -56,18 +60,13 @@ func TestGradient(t *testing.T) {
 		{3, XOR, polynomialGraph()},
 	} {
 		t.Run(strconv.Itoa(k), func(t *testing.T) {
-			var writer graph.MetricsWriterFunc = func(metrics graph.Metrics) {
-				t.Log(metrics.String())
-			}
+			v.Data.DisableClassWeights = true
+			v.Data.DisableShuffle = true
 
-			config := graph.Config{
-				DisableClassWeights: true,
-				DisableShuffle:      true,
-				Epochs:              v.Epochs,
-				Data:                v.Data,
-			}.Validate()
-			v.Graph.Apply(config)
-			v.Graph.Fit(config, writer)
+			v.Graph.Apply(graph.Config{}.Validate())
+
+			fitter := graph.Fitter{Training: v.Data}
+			fitter.Fit(v.Graph, writer)
 
 			for m := range v.Data.X {
 				x := v.Data.X[m]

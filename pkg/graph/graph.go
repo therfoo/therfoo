@@ -28,35 +28,6 @@ func (g Graph) Estimate(x []float64) []float64 {
 	return x
 }
 
-func (g Graph) Fit(c Config, w ...MetricsWriter) {
-	for i := 1; i <= int(c.Epochs); i++ {
-		for j := range c.Training.X {
-			a := g.Estimate(c.Training.X[j])
-			gradients := make([]float64, len(a))
-			for k := range gradients {
-				gradients[k] = a[k] - c.Training.Y[j][k]
-				if c.ClassWeights != nil {
-					gradients[k] *= c.ClassWeights[k]
-				}
-			}
-			g.Minimize(gradients)
-			for k := range w {
-				w[k].Write(Metrics{Epoch: i, Sample: j, Estimate: a, Actual: c.Training.Y[j]})
-			}
-		}
-		for j := range c.Validation.X {
-			a := g.Estimate(c.Validation.X[j])
-			gradients := make([]float64, len(a))
-			for k := range gradients {
-				gradients[k] = a[k] - c.Validation.Y[j][k]
-			}
-			for k := range w {
-				w[k].Write(Metrics{Epoch: i, Sample: j, Estimate: a, Actual: c.Validation.Y[j]})
-			}
-		}
-	}
-}
-
 func (g Graph) Gradients() [][][]float64 {
 	gradients := make([][][]float64, len(g))
 	for i := range gradients {

@@ -22,6 +22,5 @@ func (m Momentum) Optimize(gradients [][]float64) [][]float64 {
 			m.gradients[i][j] = m.momentum*m.gradients[i][j] + (1-m.momentum)*gradients[i][j]
 		}
 	}
-	// m.gradients[i] = m.momentum*m.gradients[i] + (1-m.momentum)*gradient
 	return m.gradients
 }

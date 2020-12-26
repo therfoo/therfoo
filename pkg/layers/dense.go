@@ -1,77 +1,39 @@
 package layers
 
-import (
-	"fmt"
-	"math"
-	"strings"
-)
-
 type Dense struct {
-	layer
-	learner
-	gradients []float64
-	input     []float64
-	Neurons   uint64
+	bias    Bias
+	dense   UnbiasedDense
+	Neurons uint64
 }
 
-func (d *Dense) Estimate(input []float64) []float64 {
-	d.input = input
-	for j := range d.weights {
-		var z float64
-		for k := range d.weights[j] {
-			z = math.FMA(d.weights[j][k], input[k], z)
-		}
-		d.output[j] = z
-	}
-	return d.output
+func (l *Dense) Estimate(input []float64) []float64 {
+	input = l.dense.Estimate(input)
+	return l.bias.Estimate(input)
 }
 
-func (d *Dense) Minimize(gradients []float64) []float64 {
-	for k := range d.gradients {
-		d.gradients[k] = 0
-	}
-	for j := range d.weights {
-		for k := range d.weights[j] {
-			d.localGradients[j][k] = gradients[j] * d.input[k]
-			d.gradients[k] += gradients[j] * d.weights[j][k]
-		}
-	}
-	return d.gradients
+func (l *Dense) Gradients() [][]float64 {
+	return append(l.bias.localGradients, l.dense.localGradients...)
 }
 
-func (d *Dense) SetShape(shape []uint64) {
-	d.inputShape = shape
-	d.outputShape = Shape{d.Neurons}
-	w := d.inputShape.Size()
-	n := d.Neurons
-	d.input = make([]float64, w)
-	d.output = make([]float64, n)
-	d.gradients = make([]float64, w)
-	d.localGradients = make([][]float64, n)
-	d.weights = make([][]float64, n)
-	for j := range d.weights {
-		d.localGradients[j] = make([]float64, w)
-		d.weights[j] = Random(w)
-	}
+func (l *Dense) Minimize(gradients []float64) []float64 {
+	gradients = l.bias.Minimize(gradients)
+	return l.dense.Minimize(gradients)
 }
 
-func (d *Dense) String() string {
-	var s []string
-	s = append(s, "dense:")
-	s = append(s, fmt.Sprintf("%sinputs:", indent))
-	for _, v := range d.input {
-		s = append(s, fmt.Sprintf("%s%s- %g", indent, indent, v))
-	}
-	s = append(s, fmt.Sprintf("%soutputs:", indent))
-	for _, v := range d.output {
-		s = append(s, fmt.Sprintf("%s%s- %g", indent, indent, v))
-	}
-	s = append(s, fmt.Sprintf("%sweights:", indent))
-	for j := range d.weights {
-		s = append(s, fmt.Sprintf("%s%s-", indent, indent))
-		for k := range d.weights[j] {
-			s = append(s, fmt.Sprintf("%s%s%s- %g", indent, indent, indent, d.weights[j][k]))
-		}
-	}
-	return strings.Join(s, eol)
+func (l *Dense) SetShape(shape []uint64) {
+	l.dense.Neurons = l.Neurons
+	l.dense.SetShape(shape)
+	l.bias.SetShape(l.dense.Shape())
+}
+
+func (l *Dense) Shape() []uint64 {
+	return l.bias.Shape()
+}
+
+func (l *Dense) String() string {
+	return l.dense.String() + eol + l.bias.String()
+}
+
+func (l *Dense) Weights() [][]float64 {
+	return append(l.bias.weights, l.dense.weights...)
 }

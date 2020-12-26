@@ -14,9 +14,9 @@ func TestGradient(t *testing.T) {
 	var linearGraph = func() graph.Graph {
 		return graph.New(
 			&Input{2},
-			&BiasedDense{Neurons: 2},
+			&Dense{Neurons: 2},
 			&Sigmoid{},
-			&BiasedDense{Neurons: 1},
+			&Dense{Neurons: 1},
 			&Sigmoid{},
 		)
 	}
@@ -24,7 +24,7 @@ func TestGradient(t *testing.T) {
 	var polynomialGraph = func() graph.Graph {
 		return graph.New(
 			&Input{2},
-			&BiasedDense{Neurons: 1},
+			&Dense{Neurons: 1},
 			&Polynomial{Degree: 2},
 			&Sigmoid{},
 		)

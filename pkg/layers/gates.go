@@ -2,22 +2,22 @@ package layers
 
 import "github.com/therfoo/therfoo/pkg/graph"
 
-var AND = graph.Data{
+var AND = graph.Features{
 	X: [][]float64{{0, 0}, {0, 1}, {1, 0}, {1, 1}},
 	Y: [][]float64{{0}, {0}, {0}, {1}},
 }
 
-var NAND = graph.Data{
+var NAND = graph.Features{
 	X: [][]float64{{0, 0}, {0, 1}, {1, 0}, {1, 1}},
 	Y: [][]float64{{1}, {1}, {1}, {0}},
 }
 
-var OR = graph.Data{
+var OR = graph.Features{
 	X: [][]float64{{0, 0}, {0, 1}, {1, 0}, {1, 1}},
 	Y: [][]float64{{0}, {1}, {1}, {1}},
 }
 
-var XOR = graph.Data{
+var XOR = graph.Features{
 	X: [][]float64{{0, 0}, {0, 1}, {1, 0}, {1, 1}},
 	Y: [][]float64{{0}, {1}, {1}, {0}},
 }

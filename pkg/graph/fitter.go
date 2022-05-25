@@ -2,7 +2,7 @@ package graph
 
 type Fitter struct {
 	Epochs               uint64
-	Training, Validation Data
+	Training, Validation Features
 }
 
 func (f Fitter) Prepare() Fitter {

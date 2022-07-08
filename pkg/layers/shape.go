@@ -2,6 +2,10 @@ package layers
 
 type Shape []uint64
 
+func (s Shape) Height() int {
+	return int(s[0])
+}
+
 func (s Shape) Shape() []uint64 {
 	shape := make([]uint64, len(s))
 	copy(shape, s)
@@ -14,4 +18,8 @@ func (s Shape) Size() int {
 		size *= v
 	}
 	return int(size)
+}
+
+func (s Shape) Width() int {
+	return int(s[1])
 }
